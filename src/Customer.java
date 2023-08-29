@@ -1,7 +1,10 @@
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import java.lang.String;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Customer {
@@ -12,11 +15,20 @@ public class Customer {
     double salary;
     String dob;
 
-    /*----------------------------------------------------*/
+    /*----------------------one-to-one------------------------------*/
 
     @OneToOne(mappedBy = "customer")
     private Vehicle vehicle;
 
+
+    /*----------------------------------------------------*/
+
+
+
+
+    /*----------------------------------------------------*/
+    @OneToMany(mappedBy = "customer")
+    private List<Orders> orders = new ArrayList<>();
 
     /*----------------------------------------------------*/
     public Customer() {
