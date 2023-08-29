@@ -5,7 +5,6 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.query.Query;
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class AppInitializer {
@@ -36,20 +35,20 @@ public class AppInitializer {
 //            e.printStackTrace();
 //        }
 //      -------------------------------------------------find all-----------------------------------------------
-//        try {
-//            List<Customer> customer = findAll();
-//            if (!customer.isEmpty()) {
-//                System.out.println("Success");
-//                customer.forEach(e-> System.out.println(e.toString()));
-//            } else {
-//                System.out.println("Try Again");
-//            }
-//        } catch (SQLException | ClassNotFoundException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            List<Customer> customer = findAll();
+            if (!customer.isEmpty()) {
+                System.out.println("Success");
+                customer.forEach(e-> System.out.println(e.toString()));
+            } else {
+                System.out.println("Try Again");
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
 //      ------------------------------------------------update------------------------------------------------
 //        try {
-//            Customer customer = new Customer(1004, "Nimal Santha", "Matale", 55000, "2023-11-12");
+//            Customer customer = new Customer(1004, "Nimal Santha Aiya", "Matale", 55000, "2023-11-12");
 //            if (updateCustomer(customer)) {
 //                System.out.println("Success");
 //            } else {
@@ -83,14 +82,12 @@ public class AppInitializer {
         preparedStatement.setDouble(4, customer.getSalary());
         preparedStatement.setObject(5, customer.getDob());
         return preparedStatement.executeUpdate() > 0; */
-        Configuration configuration = new Configuration()
-                .configure("hibernate.cfg.xml")
-                .addAnnotatedClass(Customer.class);
-        SessionFactory sessionFactory = configuration.buildSessionFactory();
-        Session session = sessionFactory.openSession();
-        Transaction transaction=session.beginTransaction();
-        session.save(customer);
-        transaction.commit();
+
+        try(Session session = new HibernateUtil().openSession()){
+            Transaction transaction=session.beginTransaction();
+            session.save(customer);
+            transaction.commit();
+        }
         return true;
 
     }
@@ -105,20 +102,18 @@ public class AppInitializer {
         preparedStatement.setLong(5, customer.getId());
         return preparedStatement.executeUpdate() > 0;*/
 
-        Configuration configuration = new Configuration()
-                .configure("hibernate.cfg.xml")
-                .addAnnotatedClass(Customer.class);
-        SessionFactory sessionFactory = configuration.buildSessionFactory();
-        Session session = sessionFactory.openSession();
-        Transaction transaction=session.beginTransaction();
-        Customer selectedCustomer = session.get(Customer.class, customer.getId());
-        if (selectedCustomer == null) return false;
-        selectedCustomer.setName(customer.getName());
-        selectedCustomer.setAddress(customer.getAddress());
-        selectedCustomer.setSalary(customer.getSalary());
-        selectedCustomer.setDob(customer.getDob());
-        transaction.commit();
-        return true;
+        try(Session session = new HibernateUtil().openSession()){
+            Transaction transaction=session.beginTransaction();
+            Customer selectedCustomer = session.get(Customer.class, customer.getId());
+            if (selectedCustomer == null) return false;
+            selectedCustomer.setName(customer.getName());
+            selectedCustomer.setAddress(customer.getAddress());
+            selectedCustomer.setSalary(customer.getSalary());
+            selectedCustomer.setDob(customer.getDob());
+            transaction.commit();
+            return true;
+        }
+
     }
 
     private static Customer findById(long id) throws SQLException, ClassNotFoundException {
@@ -136,12 +131,11 @@ public class AppInitializer {
             );
         }
         return null;*/
-        Configuration configuration = new Configuration()
-                .configure("hibernate.cfg.xml")
-                .addAnnotatedClass(Customer.class);
-        SessionFactory sessionFactory = configuration.buildSessionFactory();
-        Session session = sessionFactory.openSession();
-        return session.get(Customer.class, id);
+
+        try(Session session = new HibernateUtil().openSession()){
+            return session.get(Customer.class, id);
+        }
+
     }
 
     private static List<Customer> findAll() throws SQLException, ClassNotFoundException {
@@ -161,14 +155,11 @@ public class AppInitializer {
             );
         }
         return customerList;*/
-        Configuration configuration = new Configuration()
-                .configure("hibernate.cfg.xml")
-                .addAnnotatedClass(Customer.class);
-        SessionFactory sessionFactory = configuration.buildSessionFactory();
-        Session session = sessionFactory.openSession();
-        String hql = "FROM Customer";
-        Query<Customer> query = session.createQuery(hql, Customer.class);
-        return query.list();
+        try(Session session = new HibernateUtil().openSession()){
+            String hql = "FROM Customer";
+            Query<Customer> query = session.createQuery(hql, Customer.class);
+            return query.list();
+        }
     }
 
     private static boolean deleteCustomer(long id) throws ClassNotFoundException, SQLException {
@@ -176,26 +167,13 @@ public class AppInitializer {
         PreparedStatement preparedStatement = getConnection().prepareStatement(SQL);
         preparedStatement.setLong(1, id);
         return preparedStatement.executeUpdate() > 0;*/
-        Configuration configuration = new Configuration()
-                .configure("hibernate.cfg.xml")
-                .addAnnotatedClass(Customer.class);
-        SessionFactory sessionFactory = configuration.buildSessionFactory();
-        Session session = sessionFactory.openSession();
-        Transaction transaction=session.beginTransaction();
-        Customer selectedCustomer = session.get(Customer.class,id);
-        if (selectedCustomer == null) return false;
-        session.delete(selectedCustomer);
-        transaction.commit();
-        return true;
-
-    }
-
-    private static Connection getConnection() throws ClassNotFoundException, SQLException {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        return DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/hibernate_db",
-                "root",
-                "Tsj123##");
-
+        try(Session session = new HibernateUtil().openSession()){
+            Transaction transaction=session.beginTransaction();
+            Customer selectedCustomer = session.get(Customer.class,id);
+            if (selectedCustomer == null) return false;
+            session.delete(selectedCustomer);
+            transaction.commit();
+            return true;
+        }
     }
 }
