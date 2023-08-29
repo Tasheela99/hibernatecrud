@@ -16,6 +16,7 @@ public class HibernateUtil {
                 .build();
         Metadata metadata = new MetadataSources(standardRegistry)
                 .addAnnotatedClass(Customer.class)
+                .addAnnotatedClass(Vehicle.class)
                 .getMetadataBuilder()
                 .applyImplicitNamingStrategy(ImplicitNamingStrategyJpaCompliantImpl.INSTANCE)
                 .build();
